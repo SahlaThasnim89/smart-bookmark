@@ -36,7 +36,7 @@ export default function Header() {
           className="flex w-full max-w-3xl flex-col items-end justify-between py-4 cursor-pointer"
         >
           <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-            <p className="flex h-9 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[108px] hover:border-[#ccc] hover:border-2">
+            <p className="flex h-9 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-27 hover:border-[#ccc] hover:border-2">
               Logout
             </p>
           </div>

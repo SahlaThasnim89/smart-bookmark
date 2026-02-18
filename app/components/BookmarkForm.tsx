@@ -12,14 +12,52 @@ export default function AddBookmarkForm({ onAdded }: { onAdded?: () => void }) {
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function isValidUrl(value: string) {
+    try {
+      const parsed = new URL(value);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+
+    const trimmedTitle = title.trim();
+    const trimmedUrl = url.trim();
+
+    if (!trimmedTitle) {
+      setError("Title is required.");
+      return;
+    }
+
+    if (trimmedTitle.length < 3) {
+      setError("Title must be at least 3 characters.");
+      return;
+    }
+
+    if (trimmedTitle.length > 100) {
+      setError("Title cannot exceed 100 characters.");
+      return;
+    }
+
+    if (!isValidUrl(trimmedUrl)) {
+      setError("Please enter a valid URL starting with http or https.");
+      return;
+    }
+
+    console.log(1)
     setLoading(true);
+    console.log(2)
 
     const {
       data: { user },
     } = await supabase.auth.getUser();
+
 
     if (!user) {
       console.error("User not logged in");
@@ -44,7 +82,7 @@ export default function AddBookmarkForm({ onAdded }: { onAdded?: () => void }) {
       router.push("/dashboard/showList");
       router.refresh();
     } else {
-      console.error(error.message);
+      setError("Failed to save bookmark. Please try again.");
     }
   }
 
@@ -72,6 +110,8 @@ export default function AddBookmarkForm({ onAdded }: { onAdded?: () => void }) {
             className="rounded-lg px-4 bg-slate-50 py-2 outline-none focus:ring-2 focus:ring-blue-400"
           />
 
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+
           <button
             type="submit"
             disabled={loading}
@@ -82,27 +122,27 @@ export default function AddBookmarkForm({ onAdded }: { onAdded?: () => void }) {
         </form>
       </div>
       <div>
-      <div className="flex flex-row gap-8 items-start">
-        <Link href="/dashboard" className="flex flex-col items-start">
-        <button className="flex w-full max-w-3xl flex-col items-end justify-between py-2 cursor-pointer">
-          <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-            <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[270px] hover:border-[#ccc] hover:border-2">
-              Go to home page
-            </p>
-          </div>
-        </button>
-      </Link>
-      <Link href="/dashboard/showList" className="flex flex-col items-end">
-                <button className="flex w-full max-w-3xl flex-col items-end justify-between py-2 cursor-pointer">
-                  <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-                    <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[270px] hover:border-[#ccc] hover:border-2">
-                      View Bookmarks
-                    </p>
-                  </div>
-                </button>
-              </Link>
+        <div className="flex flex-row gap-8 items-start">
+          <Link href="/dashboard" className="flex flex-col items-start">
+            <button className="flex w-full max-w-3xl flex-col items-end justify-between py-2 cursor-pointer">
+              <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+                <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-67.5 hover:border-[#ccc] hover:border-2">
+                  Go to home page
+                </p>
               </div>
-    </div>
+            </button>
+          </Link>
+          <Link href="/dashboard/showList" className="flex flex-col items-end">
+            <button className="flex w-full max-w-3xl flex-col items-end justify-between py-2 cursor-pointer">
+              <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+                <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-67.5 hover:border-[#ccc] hover:border-2">
+                  View Bookmarks
+                </p>
+              </div>
+            </button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

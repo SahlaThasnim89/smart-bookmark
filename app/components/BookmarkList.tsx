@@ -17,7 +17,9 @@ export default function BookmarksTable() {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [totalCount, setTotalCount] = useState(0);
+
+  const itemsPerPage = 6;
 
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -25,65 +27,65 @@ export default function BookmarksTable() {
     setLoading(true);
 
     const start = (currentPage - 1) * itemsPerPage;
-const end = start + itemsPerPage - 1;
+    const end = start + itemsPerPage - 1;
 
-
-    const { data, error } = await supabase
+    const { data, error,count  } = await supabase
       .from("bookmarks")
-      .select("*")
+      .select("*", { count: "exact" })
       .order("created_at", { ascending: false })
       .range(start, end);
-;
 
     if (!error && data) {
       setBookmarks(data);
+      setTotalCount(count || 0);
     }
 
     setLoading(false);
   }
 
-useEffect(() => {
-  const getUser = async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (user) {
-      setUserId(user.id);
-    }
-  };
-
-  getUser();
-}, []);
-
-
-useEffect(() => {
-  if (!userId) return;
-
-          fetchBookmarks();
-
-
-  const channel = supabase
-    .channel("bookmarks")
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "bookmarks",
-        filter: `user_id=eq.${userId}`,
-      },
-      () => {
-        fetchBookmarks();
+      if (user) {
+        setUserId(user.id);
       }
-    )
-    .subscribe();
+    };
 
-  return () => {
-    supabase.removeChannel(channel);
-  };
-}, [userId]);
+    getUser();
+  }, []);
 
+  useEffect(() => {
+  if (!userId) return;
+  fetchBookmarks();
+}, [userId, currentPage]);
+
+  useEffect(() => {
+    if (!userId) return;
+
+
+    const channel = supabase
+      .channel("bookmarks")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "bookmarks",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          fetchBookmarks();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [userId]);
 
   async function handleDelete(id: string) {
     await supabase.from("bookmarks").delete().eq("id", id);
@@ -91,17 +93,18 @@ useEffect(() => {
   }
 
   if (loading) {
-    return <p>Loading bookmarks...</p>;
+    return (
+      <div className="flex min-h-96 items-center justify-center">
+        <p>Loading bookmarks...</p>
+      </div>
+    );
   }
 
-  const totalPages = Math.ceil(bookmarks.length / itemsPerPage);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedBookmarks = [...bookmarks]
-    .slice(startIndex, startIndex + itemsPerPage);
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex justify-between items-center">
         <div className="flex text-center align-center justfy-center">
           <h2 className="text-2xl font-semibold text-center">
@@ -112,7 +115,7 @@ useEffect(() => {
           <Link href="/dashboard/create" className="flex flex-col items-end">
             <button className="flex w-full max-w-3xl flex-col items-end justify-between py-4 cursor-pointer">
               <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-                <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[198px] hover:border-[#ccc] hover:border-2">
+                <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-49.5 hover:border-[#ccc] hover:border-2">
                   Create New
                 </p>
               </div>
@@ -121,7 +124,7 @@ useEffect(() => {
           <Link href="/dashboard" className="flex flex-col items-end">
             <button className="flex w-full max-w-3xl flex-col items-end justify-between py-4 cursor-pointer">
               <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-                <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[198px] hover:border-[#ccc] hover:border-2">
+                <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-49.5 hover:border-[#ccc] hover:border-2">
                   Go to home page
                 </p>
               </div>
@@ -146,7 +149,7 @@ useEffect(() => {
                 </td>
               </tr>
             ) : (
-              paginatedBookmarks.map((bookmark) => (
+              bookmarks.map((bookmark) => (
                 <tr
                   key={bookmark.id}
                   className="odd:bg-white even:bg-slate-50 hover:bg-slate-100 transition"
@@ -176,11 +179,13 @@ useEffect(() => {
           </tbody>
         </table>
       </div>
+      <div className="flex justify-end items-end w-full">
       <Pagination
         totalPages={totalPages}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
       />
+      </div>
     </div>
   );
 }

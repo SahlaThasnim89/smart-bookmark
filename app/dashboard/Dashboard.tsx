@@ -26,7 +26,7 @@ export default function Dashboard({ user }: Props) {
         <Link href="/dashboard/showList" className="flex flex-col items-end">
           <button className="flex w-full max-w-3xl flex-col items-end justify-between py-4 cursor-pointer">
             <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-              <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[198px] hover:border-[#ccc] hover:border-2">
+              <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-49.5 hover:border-[#ccc] hover:border-2">
                 View Bookmarks
               </p>
             </div>
@@ -36,7 +36,7 @@ export default function Dashboard({ user }: Props) {
         <Link href="/dashboard/create" className="flex flex-col items-end">
           <button className="flex w-full max-w-3xl flex-col items-end justify-between py-4 cursor-pointer">
             <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-              <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-[198px] hover:border-[#ccc] hover:border-2">
+              <p className="flex h-12 items-center justify-center gap-2 rounded-md bg-foreground px-5 text-background transition-colors hover:bg-[#383838] md:w-49.5 hover:border-[#ccc] hover:border-2">
                 Create New
               </p>
             </div>
