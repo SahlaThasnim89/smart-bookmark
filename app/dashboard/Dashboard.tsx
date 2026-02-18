@@ -14,7 +14,7 @@ export default function Dashboard({ user }: Props) {
         <h1 className="text-4xl font-semibold">Manage Your Bookmarks</h1>
 
         <h2 className="text-xl pt-16">Welcome to Your Bookmark Hub</h2>
-        <p className="text-sm tracking-wider text-blue-400">
+        <p className="text-xl font-semibold tracking-wider text-blue-400">
           {user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             user.email ||
