@@ -15,7 +15,10 @@ export default function Dashboard({ user }: Props) {
 
         <h2 className="text-xl pt-16">Welcome to Your Bookmark Hub</h2>
         <p className="text-sm tracking-wider text-blue-400">
-          {user.email ?? "User"}
+          {user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email ||
+            "User"}
         </p>
         <p className="text-xl">
           Save important links and access them anytime.What would you like to
