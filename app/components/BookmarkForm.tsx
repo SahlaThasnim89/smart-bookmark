@@ -50,9 +50,7 @@ export default function AddBookmarkForm({ onAdded }: { onAdded?: () => void }) {
       return;
     }
 
-    console.log(1)
     setLoading(true);
-    console.log(2)
 
     const {
       data: { user },
