@@ -80,14 +80,99 @@ Visit http://localhost:3000 in your browser.
 - Deployed on Vercel: https://smart-bookmark-seven-eta.vercel.app/
 - Make sure your Supabase project allows requests from the deployed domain
 
-## Notes / Challenges
+## Challenges & How I Solved Them
 
-**Realtime update vs Pagination**
 
-Initially, pagination state was used as a dependency for the realtime subscription.
-Fixed by separating pagination fetch and realtime subscription into two effects.
+**1. Realtime Subscription Causing Duplicate Fetches**
 
-**Validation**
+Problem:
+Initially, I placed the pagination state (page) inside the dependency array of the realtime subscription useEffect. This caused:
+
+- Multiple channel re-subscriptions
+- Duplicate realtime events
+- Unnecessary refetches
+- Performance inefficiency
+
+Root Cause:
+Every time the page changed, React re-ran the effect and re-created the Supabase realtime subscription.
+
+Solution:
+I separated concerns:
+
+- One useEffect handles pagination-based data fetching
+- A separate useEffect handles realtime subscription
+- The realtime subscription no longer depends on pagination state. Instead, on receiving INSERT, UPDATE, or DELETE, it triggers a controlled refetch of the current page.
+- This eliminated duplicate subscriptions and stabilized updates.
+
+
+**2. Realtime + Pagination Edge Case**
+
+Problem:
+When a bookmark was deleted on the last page, sometimes the UI would show an empty page even though previous pages contained data.
+
+Root Cause:
+Pagination state was not recalculated after deletion.
+
+Solution:
+- After each realtime event or delete action:
+- Recalculate total bookmark count
+- Adjust current page if it exceeds the available page range
+- Then refetch data
+- This ensures pagination always remains valid.
+
+
+**3. Row Level Security (RLS) Blocking Queries**
+
+Problem:
+Initially, fetch and insert operations failed silently.
+
+Root Cause:
+RLS was enabled, but policies were not correctly configured.
+
+Solution:
+Implemented proper policies:
+
+- SELECT using (auth.uid() = user_id)
+- INSERT with WITH CHECK (auth.uid() = user_id)
+- DELETE using (auth.uid() = user_id)
+
+After correctly setting policies, user data became fully isolated and secure.
+
+
+**4. Google OAuth Redirect Issues in Production**
+
+Problem:
+Google login worked locally but failed after deploying to Vercel.
+
+Root Cause:
+The deployed domain was not added to the allowed redirect URLs in Supabase authentication settings.
+
+Solution:
+Added:
+- Vercel production URL
+- Localhost development URL
+
+To Supabase → Authentication → URL Configuration.
+
+
+**5. Validating URLs on the Frontend**
+
+Problem:
+Users could enter invalid strings that were not proper URLs.
+
+Solution:
+Implemented client-side validation using:
+```
+try {
+  new URL(url)
+} catch {
+  setError("Invalid URL format")
+}
+```
+
+This prevents malformed URLs from being inserted.
+
+**6.Validation**
 
 URL and title fields are validated on the frontend:
 Title must not be empty
